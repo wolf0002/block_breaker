@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Block Breaker</title>
+	<meta charset="utf-8">
+	<style>Canvas{border:1px solid grey; display: block; margin: 0px auto;
+		color: "#f1f1f1";
+		background-image: url('BG4.jpg');
+	}
+</style>
+	</head>
+	<body>
+          <h3><strong>Welcome</strong></h3>
+       <a href="block2.php" name="logout" style="font-size: 130%; margin-left: 85vw;"></a>
+		<audio id="myAudio" src="yellow.mp3"></audio>
+		<audio id="myAudio1" src="pop.mp3"></audio>
+		<canvas id="Canvas" width="500" height="600"></canvas>
+		<script>
+			var canvas=document.getElementById("Canvas");
+			var cntxt=canvas.getContext("2d");
+			arr2=new Array();
+			arr=new Array();
+			var machineradius=20;
+			var machinewidth=50;
+			var machineheight=20;
+			var machineX=(canvas.width-50)/2;
+			var rightPressed=false;
+			var leftPressed=false;
+			var ballradius=20;
+			var spacePressed=false;
+			var y=0;
+			var machinemidY=canvas.height-20;
+			var dy=0;
+			var b_delay=0;
+			var score=0;
+			var level=0;
+			var myAudio = document.getElementById('myAudio');
+			var myAudio1 = document.getElementById('myAudio1');
+			document.addEventListener("keydown",keyDownHandler,false);
+			document.addEventListener("keyup",keyUpHandler,false);
+			function keyDownHandler(e)
+			{
+				if(e.key=="Right" || e.key=="ArrowRight")
+					rightPressed=true;
+				if(e.key=="Left" || e.key=="ArrowLeft")
+					leftPressed=true;
+				if(e.keyCode==32)
+					spacePressed=true;
+			}
+			function keyUpHandler(e)
+			{
+				if(e.key=="Right" || e.key=="ArrowRight")
+					rightPressed=false;
+				if(e.key=="Left" || e.key=="ArrowLeft")
+					leftPressed=false;
+				if(e.keyCode==32)
+					spacePressed=false;
+			}
+			function drawLine()
+			{
+				cntxt.beginPath();
+				cntxt.moveTo(0,canvas.height-30);
+				cntxt.lineTo(canvas.width,canvas.height-30);
+				cntxt.strokeStyle = "red";
+				cntxt.stroke();
+				cntxt.closePath();
+			}
+			function drawMachine()
+			{
+				cntxt.beginPath();
+				cntxt.rect(machineX,canvas.height-machineheight,machinewidth,machineheight);
+				cntxt.fillStyle="green";
+				cntxt.fill();
+				cntxt.closePath();
+				cntxt.beginPath();
+				cntxt.arc(machineX+25,machinemidY,10,0,Math.PI,true);
+				cntxt.fillStyle="green";
+				cntxt.fill();
+				cntxt.closePath();
+			}
+			function drawScore()
+			{
+                cntxt.font = "16px Arial";
+                cntxt.fillText("Score: "+score%20, 400, 20);
+            }
+            function drawLevel()
+            {
+            	level=Math.floor(score/20)+1;
+            	cntxt.font="16px Arial";
+            	cntxt.fillText("Level: "+level,10,20);
+            }
+		    for(var i=0;i<60;i++)
+		    {
+		    	var square=new Object();
+		    	square.x=Math.floor(Math.random()*(canvas.width-20))+20;
+		    	square.y=Math.floor(Math.random()*(-6000)+(-100));
+		    	square.status=0;
+		    	arr.push(square);
+		    }
+			function draw()
+			{
+				cntxt.clearRect(0,0,canvas.width,canvas.height);
+				y+=2;
+				myAudio.play();
+				for(var i= arr.length-1;i>=0;i--)
+				{
+				    if(arr[i].y>=-20 && arr[i].y<0)
+				    	arr[i].status=1;
+				    if(arr[i].y<canvas.height-50) {
+				    	arr[i].y+=level;
+				    }
+				    if(arr[i].y>=canvas.height-50 && arr[i].status==1) {
+				    	    myAudio.pause();
+				    		alert("Game Over!");
+				    		document.location.reload();
+				    		clearInterval(interval);
+				    }
+				    if(arr[i].status==1) {
+					cntxt.beginPath();
+					var grd = cntxt.createRadialGradient(arr[i].x,arr[i].y,1,arr[i].x,arr[i].y,20);
+					grd.addColorStop(0, "white");
+					grd.addColorStop(1, "red");
+				    cntxt.fillStyle=grd;
+					cntxt.arc(arr[i].x, arr[i].y, 20, 0, Math.PI*2,true);
+					cntxt.fill();
+					cntxt.closePath();
+				    }
+				}
+				for(var j=arr2.length-1;j>=0;j--)
+				{
+					if(arr2[j].y<=10)
+						arr2[j].status=0;
+					if(arr2[j].status==1 && arr2[j].y>10) {
+					    arr2[j].y-=4;
+					    cntxt.beginPath();
+				        cntxt.arc(arr2[j].x,arr2[j].y,10,0,Math.PI*2);
+				        cntxt.fillStyle="green";
+				        cntxt.fill();
+				        cntxt.closePath();
+				    }
+				}
+				drawMachine();
+				drawLine();
+				for(var k=arr.length-1;k>=0;k--)
+				{
+					for(var l=arr2.length-1;l>=0;l--)
+					{
+						if(arr2[l].x<=(arr[k].x+30) && arr2[l].x>=(arr[k].x-30) && (arr2[l].y-arr[k].y)<=30)
+						{
+							if(arr[k].status==1 && arr2[l].status==1)
+							{
+								arr2[l].status=0;
+								arr[k].status=0;
+								score++;
+								myAudio1.play();
+								if(level==4)
+								{
+									alert("YOU WIN, CONGRATS!");
+									document.location.reload();
+									clearInterval(interval);
+								}							}
+						}
+					}
+				}
+				drawScore();
+				drawLevel();
+				if(leftPressed)
+				{
+					machineX-=3;
+					if(machineX<0)
+						machineX=0;
+				}
+				if(rightPressed)
+				{
+					machineX+=3;
+					if(machineX>canvas.width-machinewidth)
+						machineX=canvas.width-machinewidth;
+				}
+				if(spacePressed)
+				{
+					if(b_delay===0)
+					{
+					    var squar=new Object();
+		    	        squar.x=machineX+25;
+		    	        squar.y=machinemidY;
+		    	        squar.status=1;
+		    	        arr2.push(squar);
+		    	        b_delay=30;
+		    	    }
+		    	if(b_delay>0) {
+		    		b_delay-=1;
+		    	}
+				}
+			}
+			var interval=setInterval(draw,10);
+		</script>
+	</body>
+</html>
